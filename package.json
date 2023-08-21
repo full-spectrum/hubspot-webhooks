@@ -1,0 +1,12 @@
+{
+  "name": "hubspot-webhooks",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "watch": "npx shadow-cljs watch hubspot",
+    "release": "npx shadow-cljs release hubspot"
+  },
+  "devDependencies": {
+    "shadow-cljs": "2.25.2"
+  }
+}

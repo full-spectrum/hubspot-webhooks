@@ -1,0 +1,12 @@
+{:source-paths
+ ["src"]
+
+ :builds
+ {:hubspot
+  {:target :node-script
+   :output-to "target/main-dev.js"
+   :main leads.plugins.hubspot.core/main
+   :devtools {:after-load server.main/reload!}
+   :release {:output-to "target/main.js"
+             :compiler-options {:optimizations :simple}
+             :main leads.plugins.hubspot.core/main}}}}

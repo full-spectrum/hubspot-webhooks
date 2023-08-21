@@ -1,0 +1,11 @@
+node_modules/
+/target
+
+.idea
+.DS_Store
+
+# Clojure
+**/.clj-kondo
+.lein-*
+.nrepl-*
+.shadow-cljs
