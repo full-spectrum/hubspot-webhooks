@@ -1,12 +1,16 @@
 {:source-paths
  ["src"]
 
+ :dependencies
+ [[macchiato/core "0.2.24"]]
+
  :builds
  {:hubspot
   {:target :node-script
    :output-to "target/main-dev.js"
    :main leads.plugins.hubspot.core/main
-   :devtools {:after-load server.main/reload!}
+   :devtools {:before-load-async leads.plugins.hubspot.core/stop!
+              :after-load leads.plugins.hubspot.core/start!}
    :release {:output-to "target/main.js"
              :compiler-options {:optimizations :simple}
              :main leads.plugins.hubspot.core/main}}}}

@@ -8,5 +8,9 @@
   },
   "devDependencies": {
     "shadow-cljs": "2.25.2"
+  },
+  "dependencies": {
+    "cookies": "^0.8.0",
+    "random-bytes": "^1.0.0"
   }
 }

@@ -1,6 +1,5 @@
 (ns leads.plugins.hubspot.core
-  (:require ["express" :as express]
-            ["http" :as http]))
+  (:require [macchiato.server :as http]))
 
 (defonce server-ref
   (volatile! nil))
@@ -11,32 +10,23 @@
      (+ request-timestamp (* 5 60 1000))))
 
 (defn handle-webhook []
-  (fn [req res]
-    (js/console.info "Request:" (.-method req) (.-url req))
-    ;; x-hubspot-signature-v3 XKyTU+WLpFN4OWYFGk2zSRUINp4P+WkTYBv6tbqEYvg=,
-    ;; x-hubspot-request-timestamp 1692536808815,
-    (let [headers (.-headers req)
-          timestamp (aget headers "x-hubspot-request-timestamp")
-          signature-v3 (aget headers "x-hubspot-signature-v3")]
-      (js/console.log "timely?" (recent-request? (js/Number timestamp)))
-      (js/console.log "requestBody" (type (.-body req)))
+  (fn [req next]
+    (js/console.info "Request:" (name (:request-method req)) (:uri req))
+    (let [headers (:headers req)
+          timestamp (get headers "x-hubspot-request-timestamp")
+          signature-v3 (get headers "x-hubspot-signature-v3")]
+      (println "timely?" (recent-request? (js/Number timestamp)))
       (js/console.log "timestamp" timestamp)
-      (js/console.log "signature-v3" signature-v3)
-      (-> res
-          (.status 200)
-          ; (.set "Content-Type" "text/html")
-          (.json (clj->js {:hey "ya"}))))))
+      (next {:status 200 :body "webhook"}))))
 
 (defn start-server
   "Takes a port, starts a webserver on that port and return a Node.js
    `http.Server` object."
   [port]
   (js/console.info "Starting...")
-  (let [express-app (doto (new express)
-                      (.use (express/json))
-                      (.post "/" (handle-webhook)))]
-    (-> (http/createServer express-app)
-        (.listen port #(js/console.info "Server started on port" port)))))
+  (http/start {:port port
+               :handler (handle-webhook)
+               :on-success #(js/console.info "Server started on port" port)}))
 
 (defn main [& cli-args]
   (if-let [port (or (first cli-args)
