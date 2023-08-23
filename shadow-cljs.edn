@@ -7,10 +7,7 @@
  :builds
  {:hubspot
   {:target :node-script
-   :output-to "target/main-dev.js"
+   :output-to "target/main.js"
    :main leads.plugins.hubspot.core/main
    :devtools {:before-load-async leads.plugins.hubspot.core/stop!
-              :after-load leads.plugins.hubspot.core/start!}
-   :release {:output-to "target/main.js"
-             :compiler-options {:optimizations :simple}
-             :main leads.plugins.hubspot.core/main}}}}
+              :after-load leads.plugins.hubspot.core/start!}}}}
