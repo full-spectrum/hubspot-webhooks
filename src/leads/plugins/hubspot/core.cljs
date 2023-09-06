@@ -1,6 +1,20 @@
 (ns leads.plugins.hubspot.core
   (:require [leads.plugins.hubspot.webhook :as webhook]
-            [macchiato.server :as http]))
+            [macchiato.server :as http]
+            ["concat-stream" :as concat-stream]))
+
+(defn wrap-body
+  [handler]
+  (fn [{:keys [body] :as request} respond raise]
+    (if (string? body)
+      (handler request respond raise)
+      (.pipe ^js body
+             (concat-stream.
+              (fn [body]
+                (handler
+                 (assoc request :body (.toString body "utf8"))
+                 respond
+                 raise)))))))
 
 (def secret
   "copy secret from Hubspot developer portal")
@@ -27,7 +41,7 @@
   [port]
   (js/console.info "Starting...")
   (http/start {:port port
-               :handler (handle-webhook)
+               :handler (wrap-body (handle-webhook))
                :on-success #(js/console.info "Server started on port" port)}))
 
 (defn main [& cli-args]
