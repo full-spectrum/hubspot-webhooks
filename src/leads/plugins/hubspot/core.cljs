@@ -1,22 +1,24 @@
 (ns leads.plugins.hubspot.core
-  (:require [macchiato.server :as http]))
+  (:require [leads.plugins.hubspot.webhook :as webhook]
+            [macchiato.server :as http]))
+
+(def secret
+  "copy secret from Hubspot developer portal")
+
+(def webhook-url
+  "copy FULL URL 'Webhooks' in Hubspot developer portal")
 
 (defonce server-ref
   (volatile! nil))
-
-(defn recent-request?
-  [request-timestamp]
-  (< (.getTime (js/Date.))
-     (+ request-timestamp (* 5 60 1000))))
 
 (defn handle-webhook []
   (fn [req next]
     (js/console.info "Request:" (name (:request-method req)) (:uri req))
     (let [headers (:headers req)
-          timestamp (get headers "x-hubspot-request-timestamp")
-          signature-v3 (get headers "x-hubspot-signature-v3")]
-      (println "timely?" (recent-request? (js/Number timestamp)))
-      (js/console.log "timestamp" timestamp)
+          timestamp (get headers "x-hubspot-request-timestamp")]
+      (println "timely?" (webhook/recent-request? (js/Number timestamp)))
+      (println "signature given" (get headers "x-hubspot-signature-v3"))
+      (println "signature calc " (webhook/request-signature secret webhook-url req))
       (next {:status 200 :body "webhook"}))))
 
 (defn start-server
