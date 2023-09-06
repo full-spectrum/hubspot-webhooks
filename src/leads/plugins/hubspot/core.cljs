@@ -51,10 +51,15 @@
   (js/console.info "Stopping HTTP server...")
   (.close server
           (fn [err]
-            (js/console.info "HTTP server shutdown successful" err)
-            (on-close))))
+            (if err
+              (js/console.warn "HTTP server shutdown failed" err)
+              (js/console.info "HTTP server shutdown successful"))
+            (on-close err))))
 
 (defn main [& cli-args]
+  (.on js/process "SIGINT" #(when-some [srv @server-ref]
+                             (stop-server srv (fn [err]
+                                                (.exit js/process (if err 1 0))))))
   (if-let [port (or (first cli-args)
                     (.-PORT (.-env js/process)))]
     (start-server port)
