@@ -22,8 +22,6 @@
 (def webhook-url
   "copy FULL URL 'Webhooks' in Hubspot developer portal")
 
-(defonce server-ref
-  (volatile! nil))
 
 (defn handle-webhook []
   (fn [req next]
@@ -35,31 +33,31 @@
       (println "signature calc " (webhook/request-signature secret webhook-url req))
       (next {:status 200 :body "webhook"}))))
 
+(defonce server-ref
+  (volatile! nil))
+
 (defn start-server
   "Takes a port, starts a webserver on that port and return a Node.js
    `http.Server` object."
   [port]
-  (js/console.info "Starting...")
-  (http/start {:port port
-               :handler (wrap-body (handle-webhook))
-               :on-success #(js/console.info "Server started on port" port)}))
+  (js/console.info "Starting HTTP server...")
+  (->> (http/start {:port port
+                    :handler (wrap-body (handle-webhook))
+                    :on-success #(js/console.info "Server started on port" port)})
+       (vreset! server-ref)))
+
+(defn stop-server
+  [server on-close]
+  (js/console.info "Stopping HTTP server...")
+  (.close server
+          (fn [err]
+            (js/console.info "HTTP server shutdown successful" err)
+            (on-close))))
 
 (defn main [& cli-args]
   (if-let [port (or (first cli-args)
                     (.-PORT (.-env js/process)))]
-    (vreset! server-ref (start-server port))
+    (start-server port)
     (js/console.error
      (str "Port config missing! Either provide port as first CLI argument"
           " or set environment variable PORT"))))
-
-(defn start! []
-  (main 4000))
-
-(defn stop!
-  [done]
-  (js/console.warn "Stopping...")
-  (when-some [srv @server-ref]
-    (.close srv
-            (fn [err]
-              (js/console.log "Shutdown successful" err)
-              (done)))))
