@@ -4,7 +4,7 @@
 
 (defn start!
   []
-  (core/start-server (:port @config/store)))
+  (core/start-server @config/store))
 
 (defn stop!
   [done]

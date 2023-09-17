@@ -17,14 +17,8 @@
                  respond
                  raise)))))))
 
-(def secret
-  "copy secret from Hubspot developer portal")
-
-(def webhook-url
-  "copy FULL URL 'Webhooks' in Hubspot developer portal")
-
-
-(defn handle-webhook []
+(defn handle-webhook
+  [secret webhook-url]
   (fn [req next]
     (js/console.info "Request:" (name (:request-method req)) (:uri req))
     (let [headers (:headers req)
@@ -40,10 +34,10 @@
 (defn start-server
   "Takes a port, starts a webserver on that port and return a Node.js
    `http.Server` object."
-  [port]
+  [{:keys [port secret webhook-url]}]
   (js/console.info "Starting HTTP server...")
   (->> (http/start {:port port
-                    :handler (wrap-body (handle-webhook))
+                    :handler (wrap-body (handle-webhook secret webhook-url))
                     :on-success #(js/console.info "Server started on port" port)})
        (vreset! server-ref)))
 
@@ -63,7 +57,10 @@
                                                  (.exit js/process (if err 2 0))))))
   (try
     (let [conf (config/setup! cli-args)]
-      (start-server (:port conf)))
+      (start-server conf))
     (catch ExceptionInfo e
       (js/console.error (ex-message e))
-      (.exit js/process 1))))
+      (.exit js/process 1))
+    (catch js/Error e
+      (js/console.error (ex-message e))
+      (.exit js/process 3))))
