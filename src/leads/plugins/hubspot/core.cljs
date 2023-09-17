@@ -1,5 +1,6 @@
 (ns leads.plugins.hubspot.core
   (:require [leads.plugins.hubspot.webhook :as webhook]
+            [leads.plugins.hubspot.config :as config]
             [macchiato.server :as http]
             ["concat-stream" :as concat-stream]))
 
@@ -58,11 +59,11 @@
 
 (defn main [& cli-args]
   (.on js/process "SIGINT" #(when-some [srv @server-ref]
-                             (stop-server srv (fn [err]
-                                                (.exit js/process (if err 1 0))))))
-  (if-let [port (or (first cli-args)
-                    (.-PORT (.-env js/process)))]
-    (start-server port)
-    (js/console.error
-     (str "Port config missing! Either provide port as first CLI argument"
-          " or set environment variable PORT"))))
+                              (stop-server srv (fn [err]
+                                                 (.exit js/process (if err 2 0))))))
+  (try
+    (let [conf (config/setup! cli-args)]
+      (start-server (:port conf)))
+    (catch ExceptionInfo e
+      (js/console.error (ex-message e))
+      (.exit js/process 1))))
