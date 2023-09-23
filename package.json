@@ -12,6 +12,7 @@
   "dependencies": {
     "concat-stream": "^2.0.0",
     "cookies": "^0.8.0",
-    "random-bytes": "^1.0.0"
+    "random-bytes": "^1.0.0",
+    "ws": "^8.14.2"
   }
 }
