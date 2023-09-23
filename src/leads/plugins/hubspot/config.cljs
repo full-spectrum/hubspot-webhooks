@@ -22,6 +22,8 @@
           :webhook-url (:LEADS_HUBSPOT_PLUGIN_WEBHOOK_URL env)
           :secret (when-let [secret-path (or (second cli-args)
                                              (:LEADS_HUBSPOT_PLUGIN_APP_SECRET_PATH env))]
-                    (.readFileSync fs secret-path "utf8"))}
+                    (.readFileSync fs secret-path "utf8"))
+          :pubsub {:project-id (:GCLOUD_PROJECT_ID env)
+                   :topic-id (:LEADS_HUBSPOT_PLUGIN_PUBSUB_TOPIC_ID env)}}
          (validate)
          (vreset! store))))
