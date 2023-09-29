@@ -98,3 +98,12 @@
     (catch js/Error e
       (js/console.error (ex-message e))
       (.exit js/process 3))))
+
+(defn start!
+  []
+  (start-server @config/store))
+
+(defn stop!
+  [done]
+  (when-some [srv @server-ref]
+    (stop-server srv done)))

@@ -9,6 +9,5 @@
   {:target :node-script
    :output-to "target/main.js"
    :main leads.plugins.hubspot.core/main
-   :devtools {:before-load-async leads.plugins.hubspot.dev/stop!
-              :after-load leads.plugins.hubspot.dev/start!}
-   :dev {:main leads.plugins.hubspot.dev/main}}}}
+   :devtools {:before-load-async leads.plugins.hubspot.core/stop!
+              :after-load leads.plugins.hubspot.core/start!}}}}
