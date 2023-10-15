@@ -25,7 +25,7 @@
   (let [client (PubSub/v1.PublisherClient.)
         topic-path (.projectTopicPath client project-id topic-id)]
     (fn publish
-      [messages]
+      [messages on-success on-error]
       (-> client
           (.publish #js {:topic topic-path
                          :messages (->> messages
@@ -33,9 +33,11 @@
                                                {:data (.from js/Buffer message)}))
                                         clj->js)})
           (.then (fn [[response]]
-                   (println "PubSub response" response))
-                 (fn [err]
-                   (js/console.error err)))))))
+                   (js/console.debug "PubSub response" response)
+                   (on-success)))
+          (.catch (fn [err]
+                    (js/console.error err)
+                    (on-error)))))))
 
 (defn split-events
   [events-json]
@@ -45,20 +47,20 @@
 
 (defn handle-webhook
   [secret webhook-url publish-to-queue]
-  (fn [req next]
+  (fn [req next raise]
     (js/console.info "Request:" (name (:request-method req)) (:uri req))
     (let [headers (:headers req)
           timestamp (get headers "x-hubspot-request-timestamp")]
       (println "timely?" (webhook/recent-request? (js/Number timestamp)))
       (println "signature given" (get headers "x-hubspot-signature-v3"))
       (println "signature calc " (webhook/request-signature secret webhook-url req))
-      (next (if (and (webhook/recent-request? (js/Number timestamp))
-                     (= (get headers "x-hubspot-signature-v3")
-                        (webhook/request-signature secret webhook-url req)))
-              (do
-                (publish-to-queue (split-events (:body req)))
-                {:status 200})
-              {:status 400})))))
+      (if (and (webhook/recent-request? (js/Number timestamp))
+               (= (get headers "x-hubspot-signature-v3")
+                  (webhook/request-signature secret webhook-url req)))
+        (publish-to-queue (split-events (:body req))
+                          (fn [] (next {:status 200}))
+                          (fn [] (raise {:status 500})))
+        (next {:status 400})))))
 
 (defonce server-ref
   (volatile! nil))
