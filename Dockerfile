@@ -22,7 +22,8 @@ RUN npm ci
 COPY . ./
 
 # Transpile the Clojurescript into Javascript using Shadow-CLJS
-RUN npx shadow-cljs release hubspot
+RUN --mount=type=cache,id=m2-cache,sharing=shared,target=/root/.m2  \
+  npx shadow-cljs release hubspot
 
 #################################################################
 
