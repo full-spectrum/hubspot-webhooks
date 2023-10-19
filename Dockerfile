@@ -32,7 +32,6 @@ RUN --mount=type=cache,id=m2-cache,sharing=shared,target=/root/.m2  \
 FROM node:18-alpine
 
 # Use TCP port 8080, as default. Container reads ENV "PORT".
-# If PORT not set, the container defaults to TCP port 3000.
 ENV PORT=8080
 EXPOSE 8080
 
