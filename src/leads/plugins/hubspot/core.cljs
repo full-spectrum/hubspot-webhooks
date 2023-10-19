@@ -51,9 +51,6 @@
     (js/console.info "Request:" (name (:request-method req)) (:uri req))
     (let [headers (:headers req)
           timestamp (get headers "x-hubspot-request-timestamp")]
-      (println "timely?" (webhook/recent-request? (js/Number timestamp)))
-      (println "signature given" (get headers "x-hubspot-signature-v3"))
-      (println "signature calc " (webhook/request-signature secret webhook-url req))
       (if (and (webhook/recent-request? (js/Number timestamp))
                (= (get headers "x-hubspot-signature-v3")
                   (webhook/request-signature secret webhook-url req)))
